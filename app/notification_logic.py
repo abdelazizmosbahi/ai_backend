@@ -3,6 +3,8 @@ def prioritize_notification(notification_type):
              'ban': 'high',
              'question_response': 'high',
              'badge_awarded': 'medium',
-             'vote': 'low'
+             'vote': 'low',
+             'restriction_warning': 'medium'  # Add new type
+
          }
          return priority_map.get(notification_type, 'medium')

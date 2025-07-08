@@ -1,17 +1,19 @@
-# Import Flask and PyMongo for application and database setup
 from flask import Flask
 from flask_pymongo import PyMongo
+from flask_cors import CORS
 from app.config import Config
 
-# Function to create and configure the Flask application
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     
-    # Initialize MongoDB and attach it to the app
+    # Initialize MongoDB
     app.mongo = PyMongo(app)
     
-    # Import routes after MongoDB initialization
+    # Enable CORS
+    CORS(app, resources={r"/api/*": {"origins": ["http://localhost:4200", "https://your-frontend-domain.com"]}})
+    
+    # Import routes
     from app.routes import bp
     app.register_blueprint(bp, url_prefix='/api')
     

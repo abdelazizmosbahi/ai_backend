@@ -13,9 +13,9 @@ def create_notification(mongo, user_id, notification_type, content, priority='me
     }
     return mongo.db.notifications.insert_one(notification)
 
-# Function to retrieve unread notifications for a user, sorted by timestamp
+# Function to retrieve all notifications for a user, sorted by timestamp
 def get_user_notifications(mongo, user_id, limit=10):
-    return list(mongo.db.notifications.find({'user_id': user_id, 'read': False})
+    return list(mongo.db.notifications.find({'user_id': user_id})
                 .sort('timestamp', -1)
                 .limit(limit))
 

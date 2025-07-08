@@ -1,4 +1,5 @@
 # Import necessary Flask modules and project dependencies
+from bson import ObjectId
 from flask import Blueprint, jsonify, request, current_app
 from app.models import (
     create_notification, get_user_notifications, log_violation,
@@ -133,3 +134,23 @@ def chatbot_interaction():
             # Handle errors gracefully
             logger.error(f"Chatbot processing failed: {str(e)}")
             return jsonify({'error': f'Chatbot processing failed: {str(e)}'}), 500
+        
+# Endpoint to mark a notification as read
+
+@bp.route('/notifications/<notification_id>/read', methods=['PUT'])
+def mark_notification_as_read(notification_id):
+    try:
+        with current_app.app_context():
+            result = current_app.mongo.db.notifications.update_one(
+                {'_id': ObjectId(notification_id)},
+                {'$set': {'read': True}}
+            )
+            if result.modified_count > 0:
+                logger.debug(f"Notification {notification_id} marked as read")
+                return jsonify({'message': 'Notification marked as read'}), 200
+            else:
+                logger.error(f"Notification {notification_id} not found")
+                return jsonify({'error': 'Notification not found'}), 404
+    except ValueError:
+        logger.error(f"Invalid notification ID format: {notification_id}")
+        return jsonify({'error': 'Invalid notification ID'}), 400

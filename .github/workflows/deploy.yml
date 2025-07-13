@@ -27,6 +27,13 @@ jobs:
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
+    # Verify App Service status
+    - name: Check App Service Status
+      uses: azure/CLI@v2
+      with:
+        inlineScript: |
+          az webapp show --name asksphere-ai-backend --resource-group asksphere-rg --query state
+
     # Deploy to Azure App Service
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v3
@@ -35,7 +42,7 @@ jobs:
         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         package: .
 
-    # Optional: Restart the App Service to ensure it starts after deployment
+    # Restart Azure Web App
     - name: Restart Azure Web App
       uses: azure/CLI@v2
       with:

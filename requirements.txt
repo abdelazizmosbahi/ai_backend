@@ -1,10 +1,3 @@
-# flask
-# flask-pymongo
-# flask-bcrypt
-# flask-cors
-# flask-login
-# detoxify
-# sentence-transformers
 Flask==2.0.1
 Werkzeug==2.0.3
 Flask-PyMongo==2.3.0
@@ -15,4 +8,3 @@ detoxify==0.5.2
 sentence-transformers==3.2.0
 Flask-Cors==3.0.10
 gunicorn==23.0.0
-torch==2.4.1+cpu

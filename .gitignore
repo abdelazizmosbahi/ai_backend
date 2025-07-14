@@ -1,9 +1,16 @@
-__pycache__/ 
-venv/ 
-instance/ 
-uploads/ 
+# .gitignore
+__pycache__/
+venv/
+instance/
+Uploads/
 flaskenv/
-*.pyc 
-*.pyo 
-*.pyd 
-.env 
+*.pyc
+*.pyo
+*.pyd
+.env
+.cache/
+huggingface/
+*.bin
+*.h5
+*.tar.gz
+model_cache/

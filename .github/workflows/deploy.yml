@@ -35,6 +35,12 @@
             pip install torch==2.4.1 --index-url https://download.pytorch.org/whl/cpu
             if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
+        # Prepare requirements for Oryx
+        - name: Prepare requirements for Oryx
+          run: |
+            mkdir -p /home/site/wwwroot
+            cp requirements.txt /home/site/wwwroot/requirements.txt
+
         # Log disk usage before deployment
         - name: Log disk usage
           run: |

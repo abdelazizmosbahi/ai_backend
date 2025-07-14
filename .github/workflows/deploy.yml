@@ -54,16 +54,16 @@ jobs:
       uses: azure/webapps-deploy@v3
       with:
         app-name: asksphere-ai-backend
-        publish-profile: ${{ secrets.TEST_PUBLISH_PROFILE }}
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         package: .
 
-    # Log deployment details
+    # Log deployment details (on failure)
     - name: Log Deployment Details
       if: failure()
       uses: azure/CLI@v2
       with:
         inlineScript: |
-          az webapp log tail --name asksphere-ai-backend --resource-group asksphere-rg --format text
+          az webapp log tail --name asksphere-ai-backend --resource-group asksphere-rg
 
     # Restart Azure Web App
     - name: Restart Azure Web App
@@ -71,3 +71,4 @@ jobs:
       with:
         inlineScript: |
           az webapp restart --name asksphere-ai-backend --resource-group asksphere-rg
+          

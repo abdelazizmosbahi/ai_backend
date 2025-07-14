@@ -35,12 +35,6 @@
             pip install torch==2.4.1 --index-url https://download.pytorch.org/whl/cpu
             if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-        # Prepare requirements for Oryx
-        - name: Prepare requirements for Oryx
-          run: |
-            mkdir -p /home/site/wwwroot
-            cp requirements.txt /home/site/wwwroot/requirements.txt
-
         # Log disk usage before deployment
         - name: Log disk usage
           run: |
@@ -63,6 +57,13 @@
           with:
             inlineScript: |
               az webapp show --name asksphere-ai-backend --resource-group asksphere-rg --query state
+
+        # Clean up lock files
+        - name: Clean up lock files
+          uses: azure/CLI@v2
+          with:
+            inlineScript: |
+              az webapp ssh --name asksphere-ai-backend --resource-group asksphere-rg --command "rm -f /home/site/locks/status.lock /home/site/locks/info.lock"
 
         # Wait for App Service Stability
         - name: Wait for App Service Stability

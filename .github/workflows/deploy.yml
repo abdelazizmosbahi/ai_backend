@@ -58,12 +58,12 @@
             inlineScript: |
               az webapp show --name asksphere-ai-backend --resource-group asksphere-rg --query state
 
-        # Clean up lock files
-        - name: Clean up lock files
+        # Restart App Service to clear locks
+        - name: Restart App Service
           uses: azure/CLI@v2
           with:
             inlineScript: |
-              az webapp ssh --name asksphere-ai-backend --resource-group asksphere-rg --command "rm -f /home/site/locks/status.lock /home/site/locks/info.lock"
+              az webapp restart --name asksphere-ai-backend --resource-group asksphere-rg
 
         # Wait for App Service Stability
         - name: Wait for App Service Stability

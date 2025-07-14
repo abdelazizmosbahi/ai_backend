@@ -87,6 +87,15 @@
             app-name: asksphere-ai-backend
             publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
             package: app.zip
+            type: zip
+
+        # Check deployed files
+        - name: Check deployed files
+          if: always()
+          uses: azure/CLI@v2
+          with:
+            inlineScript: |
+              az webapp ssh --name asksphere-ai-backend --resource-group asksphere-rg --command "ls -l /home/site/wwwroot"
 
         # Log deployment details (on failure)
         - name: Log Deployment Details

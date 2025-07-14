@@ -71,4 +71,3 @@ jobs:
       with:
         inlineScript: |
           az webapp restart --name asksphere-ai-backend --resource-group asksphere-rg
-          

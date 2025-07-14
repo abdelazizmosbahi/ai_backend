@@ -45,7 +45,7 @@ jobs:
         inlineScript: |
           az webapp show --name asksphere-ai-backend --resource-group asksphere-rg --query state
 
-    # Wait to avoid deployment conflicts
+    # Wait for App Service Stability
     - name: Wait for App Service Stability
       run: sleep 30
 
@@ -54,7 +54,7 @@ jobs:
       uses: azure/webapps-deploy@v3
       with:
         app-name: asksphere-ai-backend
-        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        publish-profile: ${{ secrets.TEST_PUBLISH_PROFILE }}
         package: .
 
     # Restart Azure Web App

@@ -6,6 +6,10 @@
           - main
       workflow_dispatch:
 
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+
     jobs:
       build-and-deploy:
         runs-on: ubuntu-latest
@@ -58,13 +62,14 @@
         - name: Wait for App Service Stability
           run: sleep 90
 
-        # Deploy to Azure App Service
+        # Deploy to Azure Web App
         - name: Deploy to Azure Web App
           uses: azure/webapps-deploy@v3
           with:
             app-name: asksphere-ai-backend
             publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
             package: .
+            deployment-method: zip
 
         # Log deployment details (on failure)
         - name: Log Deployment Details
@@ -72,7 +77,6 @@
           uses: azure/CLI@v2
           with:
             inlineScript: |
-              az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
               az webapp log tail --name asksphere-ai-backend --resource-group asksphere-rg
 
         # Restart Azure Web App

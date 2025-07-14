@@ -1,4 +1,4 @@
-name: Test Repository Secret
+name: Deploy to Azure App Service
 
 on:
   push:
@@ -7,17 +7,67 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-secret:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Display TEST_PUBLISH_PROFILE Secret
-        run: |
-          if [ -n "${{ secrets.TEST_PUBLISH_PROFILE }}" ]; then
-            echo "TEST_PUBLISH_PROFILE is set and accessible."
-            echo "Secret value (masked): ${{ secrets.TEST_PUBLISH_PROFILE }}"
-          else
-            echo "TEST_PUBLISH_PROFILE is not set or empty."
-            exit 1
-          fi
+    # Checkout the repository
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # Set up Python environment
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    # Install dependencies
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    # Log in to Azure using OIDC
+    - name: Azure Login with OIDC
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    # Verify App Service status
+    - name: Check App Service Status
+      uses: azure/CLI@v2
+      with:
+        inlineScript: |
+          az webapp show --name asksphere-ai-backend --resource-group asksphere-rg --query state
+
+    # Wait for App Service Stability
+    - name: Wait for App Service Stability
+      run: sleep 90
+
+    # Deploy to Azure App Service
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: asksphere-ai-backend
+        publish-profile: ${{ secrets.TEST_PUBLISH_PROFILE }}
+        package: .
+
+    # Log deployment details
+    - name: Log Deployment Details
+      if: failure()
+      uses: azure/CLI@v2
+      with:
+        inlineScript: |
+          az webapp log tail --name asksphere-ai-backend --resource-group asksphere-rg --format text
+
+    # Restart Azure Web App
+    - name: Restart Azure Web App
+      uses: azure/CLI@v2
+      with:
+        inlineScript: |
+          az webapp restart --name asksphere-ai-backend --resource-group asksphere-rg

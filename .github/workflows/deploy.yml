@@ -1,3 +1,4 @@
+# commment
 name: Build and deploy Python app to Azure Web App - backendai
 
 on:
@@ -61,6 +62,10 @@ jobs:
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_D5EED294C983497380DC8D4CC8434A01 }}
           package: release.zip
+
+
+
+
 
 
           

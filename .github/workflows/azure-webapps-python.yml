@@ -67,11 +67,3 @@ jobs:
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_D5EED294C983497380DC8D4CC8434A01 }}
           package: release.zip
-
-      - name: 'Check App Service state'
-        run: |
-          az webapp show \
-            --name backendai \
-            --resource-group asksphere-resource-group \
-            --query state \
-            --output tsv

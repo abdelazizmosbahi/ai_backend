@@ -1,113 +1,63 @@
-    name: Deploy to Azure App Service
+name: Build and deploy Python app to Azure Web App - backendai
 
-    on:
-      push:
-        branches:
-          - main
-      workflow_dispatch:
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
-      cancel-in-progress: true
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
-    jobs:
-      build-and-deploy:
-        runs-on: ubuntu-latest
-        permissions:
-          id-token: write
-          contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
-        steps:
-        # Checkout the repository
-        - name: Checkout code
-          uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-        # Set up Python environment
-        - name: Set up Python
-          uses: actions/setup-python@v5
-          with:
-            python-version: '3.11'
+      - name: Set up Python version
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-        # Install dependencies
-        - name: Install dependencies
-          run: |
-            python -m pip install --upgrade pip
-            pip install torch==2.4.1 --index-url https://download.pytorch.org/whl/cpu
-            if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
 
-        # Log disk usage before deployment
-        - name: Log disk usage
-          run: |
-            echo "Disk usage on runner:"
-            df -h
-            echo "Repository size:"
-            du -sh .
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-        # List files before deployment
-        - name: List files before deployment
-          run: |
-            echo "Files in repository:"
-            ls -R
+      - name: Zip artifact for deployment
+        run: zip release.zip . -r -x "venv/*" "__pycache__/*" "*.pyc" "*.pyo" "*.pyd" "*.log" "*.tar.gz" "*.zip" ".env" ".git/*" ".github/*" "*.model" "*.cache"
 
-        # Log in to Azure using OIDC
-        - name: Azure Login with OIDC
-          uses: azure/login@v2
-          with:
-            client-id: ${{ secrets.AZURE_CLIENT_ID }}
-            tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-            subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Upload artifact for deployment jobs
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-app
+          path: |
+            release.zip
+            !venv/
 
-        # Verify App Service status
-        - name: Check App Service Status
-          uses: azure/CLI@v2
-          with:
-            inlineScript: |
-              az webapp show --name asksphere-ai-backend --resource-group asksphere-rg --query state
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
 
-        # Restart App Service to clear locks
-        - name: Restart App Service
-          uses: azure/CLI@v2
-          with:
-            inlineScript: |
-              az webapp restart --name asksphere-ai-backend --resource-group asksphere-rg
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: python-app
 
-        # Wait for App Service Stability
-        - name: Wait for App Service Stability
-          run: sleep 90
+      - name: Unzip artifact for deployment
+        run: unzip release.zip
 
-        # Create zip package
-        - name: Create zip package
-          run: |
-            zip -r app.zip . -x ".git/*" ".github/*"
-
-        # Deploy to Azure Web App
-        - name: Deploy to Azure Web App
-          uses: azure/webapps-deploy@v3
-          with:
-            app-name: asksphere-ai-backend
-            publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-            package: app.zip
-            type: zip
-
-        # Check deployed files
-        - name: Check deployed files
-          if: always()
-          uses: azure/CLI@v2
-          with:
-            inlineScript: |
-              az webapp ssh --name asksphere-ai-backend --resource-group asksphere-rg --command "ls -l /home/site/wwwroot"
-
-        # Log deployment details (on failure)
-        - name: Log Deployment Details
-          if: failure()
-          uses: azure/CLI@v2
-          with:
-            inlineScript: |
-              az webapp log tail --name asksphere-ai-backend --resource-group asksphere-rg
-
-        # Restart Azure Web App
-        - name: Restart Azure Web App
-          uses: azure/CLI@v2
-          with:
-            inlineScript: |
-              az webapp restart --name asksphere-ai-backend --resource-group asksphere-rg
+      - name: 'Deploy to Azure Web App'
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'backendai'
+          slot-name: 'Production'
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_D5EED294C983497380DC8D4CC8434A01 }}
+          package: release.zip

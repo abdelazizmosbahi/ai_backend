@@ -1,4 +1,4 @@
-name: Build and deploy Python app to Azure Web App - backendai
+name: Build and deploy Python app to Azure Web App - asksphere-backend
 
 on:
   push:
@@ -63,7 +63,7 @@ jobs:
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'backendai'
+          app-name: 'asksphere-backend'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_D5EED294C983497380DC8D4CC8434A01 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_ASKSPHERE_BACKEND }}
           package: release.zip
